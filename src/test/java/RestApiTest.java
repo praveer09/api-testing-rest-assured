@@ -18,8 +18,9 @@ public class RestApiTest {
     public void shouldReturnSinglePerson() throws Exception {
         given().
             accept(ContentType.JSON).
+            pathParam("name", "Ajay").
         when().
-            get("/people/Ajay").
+            get("/people/{name}").
         then().
             statusCode(200).
             body("name", is("Ajay"));
