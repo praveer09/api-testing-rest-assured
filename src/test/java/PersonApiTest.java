@@ -13,17 +13,20 @@ import static com.jayway.restassured.RestAssured.given;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.*;
 
-public class RestApiTest {
+public class PersonApiTest {
     @Test
-    public void shouldReturnSinglePerson() throws Exception {
+    public void shouldReturnPersonForTheId() throws Exception {
         given().
             accept(ContentType.JSON).
-            pathParam("name", "Ajay").
+            pathParam("id", 1).
         when().
-            get("/people/{name}").
+            get("/people/{id}").
         then().
             statusCode(200).
-            body("name", is("Ajay"));
+            body(
+                "id", is(1),
+                "name", is("Praveer")
+            );
     }
 
     @Test
@@ -36,7 +39,7 @@ public class RestApiTest {
             statusCode(200).
             body(
                 "name", hasSize(2),
-                "name", hasItems("Ajay", "Vijay")
+                "name", hasItems("Praveer", "Prachi")
             );
     }
 
@@ -51,15 +54,15 @@ public class RestApiTest {
     }
 
     private void configureAndStartWebServer() {
-        List<Person> people = asList(new Person("Ajay"), new Person("Vijay"));
+        List<Person> people = asList(new Person(1, "Praveer"), new Person(2, "Prachi"));
 
         Spark.port(8080);
 
-        Spark.get("/people/:name", "application/json",
+        Spark.get("/people/:id", "application/json",
             (final Request req, final Response res) -> {
                 res.type("application/json");
                 return people.stream()
-                    .filter(p -> p.getName().equalsIgnoreCase(req.params("name")))
+                    .filter(p -> p.getId() == Integer.valueOf(req.params("id")))
                     .findFirst()
                     .orElseThrow(NotFountException::new);
             }, new Gson()::toJson);
@@ -82,10 +85,16 @@ public class RestApiTest {
     private class NotFountException extends Exception {}
 
     private class Person {
+        private final int id;
         private final String name;
 
-        public Person(String name) {
+        public Person(int id, String name) {
+            this.id = id;
             this.name = name;
+        }
+
+        public int getId() {
+            return id;
         }
 
         public String getName() {
