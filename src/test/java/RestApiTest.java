@@ -17,26 +17,26 @@ public class RestApiTest {
     @Test
     public void shouldReturnSinglePerson() throws Exception {
         given().
-                accept(ContentType.JSON).
+            accept(ContentType.JSON).
         when().
-                get("/people/Ajay").
+            get("/people/Ajay").
         then().
-                statusCode(200).
-                body("name", is("Ajay"));
+            statusCode(200).
+            body("name", is("Ajay"));
     }
 
     @Test
     public void shouldReturnAllPersons() throws Exception {
         given().
-                accept(ContentType.JSON).
+            accept(ContentType.JSON).
         when().
-                get("/people").
+            get("/people").
         then().
-                statusCode(200).
-                body(
-                        "name", hasSize(2),
-                        "name", hasItems("Ajay", "Vijay")
-                );
+            statusCode(200).
+            body(
+                "name", hasSize(2),
+                "name", hasItems("Ajay", "Vijay")
+            );
     }
 
     @Before
@@ -50,24 +50,24 @@ public class RestApiTest {
     }
 
     private void configureAndStartWebServer() {
-        Spark.port(8080);
-
         List<Person> people = asList(new Person("Ajay"), new Person("Vijay"));
 
+        Spark.port(8080);
+
         Spark.get("/people/:name", "application/json",
-                (final Request req, final Response res) -> {
-                    res.type("application/json");
-                    return people.stream()
-                            .filter(p -> p.getName().equalsIgnoreCase(req.params("name")))
-                            .findFirst()
-                            .orElseThrow(NotFountException::new);
-                }, new Gson()::toJson);
+            (final Request req, final Response res) -> {
+                res.type("application/json");
+                return people.stream()
+                    .filter(p -> p.getName().equalsIgnoreCase(req.params("name")))
+                    .findFirst()
+                    .orElseThrow(NotFountException::new);
+            }, new Gson()::toJson);
 
         Spark.get("/people", "application/json",
-                (req, res) -> {
-                    res.type("application/json");
-                    return people;
-                }, new Gson()::toJson);
+            (req, res) -> {
+                res.type("application/json");
+                return people;
+            }, new Gson()::toJson);
 
         Spark.exception(NotFountException.class, (e, req, res) -> res.status(404));
 
